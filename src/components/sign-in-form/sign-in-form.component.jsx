@@ -40,7 +40,24 @@ const SignInForm = () => {
       console.log(response);
 
       resetFormFields();
-    } catch (error) {}
+    } catch (error) {
+      switch (error.code) {
+        case "auth/wrong-password":
+          alert("Wrong password. Please try again.");
+          break;
+        case "auth/user-not-found":
+          alert("No user found with this email.");
+          break;
+        case "auth/invalid-credential":
+          alert("Invalid credential. Please check your login details.");
+          break;
+        default:
+          console.log("Error: ", error);
+          alert("An unknown error occurred. Please try again.");
+          break;
+      }
+      console.log(error);
+    }
   };
 
   const handleChange = (event) => {
@@ -74,7 +91,11 @@ const SignInForm = () => {
 
         <div className="buttons-container">
           <Button type="submit">Sign In</Button>
-          <Button buttonType={"google"} onClick={signInWithGoogle}>
+          <Button
+            type="button"
+            buttonType={"google"}
+            onClick={signInWithGoogle}
+          >
             Google Sign In
           </Button>
         </div>
