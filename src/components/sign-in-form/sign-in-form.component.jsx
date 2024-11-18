@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 
-import Button from "../button/button.component";
+import Button, { BUTTON_TYPE_CLASSES } from "../button/button.component";
 import FormInput from "../form-input/form-input.component";
 
+import { UserContext } from "../../contexts/user.context";
+
 import {
-  createUserDocumentFromAuth,
+  signInAuthUserWithEmailAndPassword,
   signInWithGooglePopup,
-  signInUserAuthWithEmailAndPassword,
 } from "../../utils/firebase/firebase.utils";
 
 import "./sign-in-form.styles.scss";
@@ -20,43 +21,38 @@ const SignInForm = () => {
   const [formFields, setFormFields] = useState(defaultFormFields);
   const { email, password } = formFields;
 
-  const resetFormFields = async () => {
+  const { setCurrentUser } = useContext(UserContext);
+
+  const resetFormFields = () => {
     setFormFields(defaultFormFields);
   };
 
   const signInWithGoogle = async () => {
     const { user } = await signInWithGooglePopup();
-    await createUserDocumentFromAuth(user);
+    setCurrentUser(user);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
-      const response = await signInUserAuthWithEmailAndPassword(
+      const { user } = await signInAuthUserWithEmailAndPassword(
         email,
         password
       );
-      console.log(response);
-
       resetFormFields();
+      setCurrentUser(user);
     } catch (error) {
       switch (error.code) {
         case "auth/wrong-password":
-          alert("Wrong password. Please try again.");
+          alert("incorrect password for email");
           break;
         case "auth/user-not-found":
-          alert("No user found with this email.");
-          break;
-        case "auth/invalid-credential":
-          alert("Invalid credential. Please check your login details.");
+          alert("no user associated with this email");
           break;
         default:
-          console.log("Error: ", error);
-          alert("An unknown error occurred. Please try again.");
-          break;
+          console.log(error);
       }
-      console.log(error);
     }
   };
 
@@ -88,15 +84,14 @@ const SignInForm = () => {
           name="password"
           value={password}
         />
-
         <div className="buttons-container">
           <Button type="submit">Sign In</Button>
           <Button
+            buttonType={BUTTON_TYPE_CLASSES.google}
             type="button"
-            buttonType={"google"}
             onClick={signInWithGoogle}
           >
-            Google Sign In
+            Sign In With Google
           </Button>
         </div>
       </form>
